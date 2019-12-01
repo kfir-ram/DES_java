@@ -122,7 +122,8 @@ public class DES {
         return packages;
     }
 
-    private String s_boxes(int index, String s){
+    private String s_boxes(int box, int iRow, int iColumn){
+
         int[] sbox1 = { 14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7,
                 0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8, 4, 1, 14,
                 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0, 15, 12, 8, 2, 4, 9,
@@ -156,7 +157,36 @@ public class DES {
                 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8, 2, 1, 14, 7, 4, 10,
                 8, 13, 15, 12, 9, 0, 3, 5, 6, 11 };
 
-        return null;
+        int code = 16 * iRow + iColumn;
+
+        switch (box) {
+            case (1):
+                return Integer.toBinaryString(sbox1[code]);
+
+            case (2):
+                return Integer.toBinaryString(sbox2[code]);
+
+            case (3):
+                return Integer.toBinaryString(sbox3[code]);
+
+            case (4):
+                return Integer.toBinaryString(sbox4[code]);
+
+            case (5):
+                return Integer.toBinaryString(sbox5[code]);
+
+            case (6):
+                return Integer.toBinaryString(sbox6[code]);
+
+            case (7):
+                return Integer.toBinaryString(sbox7[code]);
+
+            case (8):
+                return Integer.toBinaryString(sbox8[code]);
+
+            default:
+                return null;
+        }
     }
 
     private String encrypt(String msg, ArrayList<String> keys_list){
@@ -172,7 +202,7 @@ public class DES {
         System.out.println("after IP : " + msg);
 
 
-        for (int i = 0; i<16; i++) {
+        for (int i = 0; i < 16; i++) {
             mL = msg.substring(0, 32);
             mR = msg.substring(32);
 
@@ -181,7 +211,7 @@ public class DES {
             new_mL = XOR(mL,current_key);
 
             msg = "" + mR + new_mL;
-            System.out.println("round " + (i+1) + " : " + msg);
+            //System.out.println("round " + (i+1) + " : " + msg);
         }
 
 
@@ -222,8 +252,6 @@ public class DES {
             new_mL = XOR(mL,current_key);
 
             msg = "" + mR + new_mL;
-
-            System.out.println("D- round " + (16 - i) + " : " + msg);
 
         }
 
@@ -286,7 +314,7 @@ public class DES {
 
         String res = "";
         char [] MsgArray = input.toCharArray();
-        for (int i=0; i<e.length; i++)
+        for (int i=0; i < e.length; i++)
             res += MsgArray[e[i]-1];
 
         return res;
@@ -296,10 +324,8 @@ public class DES {
     private String XOR (String msg, String Key)
     {
         StringBuffer sb = new StringBuffer();
-
         for (int i = 0; i < msg.length(); i++)
             sb.append(msg.charAt(i)^Key.charAt(i));
-
         return sb.toString();
     }
 
@@ -311,18 +337,39 @@ public class DES {
         String ExpandMsg= E(MsgRight);
         //Step 2 - Xor with the key
         String XorMsg = XOR(ExpandMsg,CurrentKey);
-
         //step 3 - S boxes
         //cutting the message to packets of 6 byts
-        ArrayList <String> Sbox_Package = new ArrayList<>();
-        while (XorMsg.length() > 64)
-        {
-            Sbox_Package.add(XorMsg.substring(0,64));
-            XorMsg = XorMsg.substring(64);
+        ArrayList <String> pre_Sbox = new ArrayList<>();
+        ArrayList <String> post_Sbox = new ArrayList<>();
+
+        for (int i=0; i < 8; i++){
+            pre_Sbox.add(XorMsg.substring(0, 6));
+            XorMsg = XorMsg.substring(6);
         }
 
+        //getting the coulmn and the row of each box.
+        String coulmn, row;
+        for (int i=0; i < 8; i++){
+            row = "" + pre_Sbox.get(i).charAt(0) + pre_Sbox.get(i).charAt(5);
+            coulmn = "" + pre_Sbox.get(i).substring(1,5);
+            int iRow = Integer.parseInt(row, 2);
+            int iColumn = Integer.parseInt(coulmn, 2);
+            post_Sbox.add(s_boxes(i+1, iRow, iColumn));
+        }
 
-        return XorMsg;
+        for(int i = 0; i < 8; i++){
+            if(post_Sbox.get(i).length() < 4){
+                post_Sbox.set(i,"0" + post_Sbox.get(i));
+                i --;
+            }
+        }
+
+        String sbox_out = "";
+        for (int i = 0; i < 8; i++){
+            sbox_out += post_Sbox.get(i);
+        }
+
+        return sbox_out;
     }
 
 }

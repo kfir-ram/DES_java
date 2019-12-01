@@ -14,14 +14,20 @@ public class KeyGeneration {
         if (binary_msg.length() > 0)
             if (binary_msg.length() < 64) {
                 String adder = new String(new char[64 - binary_msg.length()]).replace('\0', '0');
-                binary_msg = binary_msg.concat(adder);
+                binary_msg = adder.concat(binary_msg);
             }
         return binary_msg;
     }
 
     public static String ShiftLeft (String s,int i){
-        i=i%s.length();
-        return (s.substring(i)+ s.substring(0,i));
+        //i=i%s.length();
+        //String temp = s.substring(i)+ s.substring(0,i);
+        String temp = "";
+        for (int j = 0; j < i; j++){
+            temp = ""+ s.charAt(0);
+            s = s.substring(1) + temp;
+        }
+        return (s);
     }
 
     //In this function we have 2 stages of PC : PC-1 and PC-2 .
@@ -62,29 +68,25 @@ public class KeyGeneration {
         final int size =binaryKey.length()/2;
         C0 = binaryKey.substring(0,size);
         D0= binaryKey.substring(size);
-        //System.out.println(C0);
-        //System.out.println(D0);
-
-        for (int i=1; i<=17; i++) {
+        String FinalKey = "";
+        for (int i=1; i<17; i++) {
             if(i==1 || i==2 || i==9 || i==16) {
-                C1 = ShiftLeft(C0,i);
-                D1 = ShiftLeft(D0,i);
+                C1 = ShiftLeft(C0,1);
+                D1 = ShiftLeft(D0,1);
             }
             else {
-                C1 = ShiftLeft(C0,i);
-                D1 = ShiftLeft(D0,i);
-                C1 = ShiftLeft(C1,i);
-                D1 = ShiftLeft(D1,i);
+                C1 = ShiftLeft(C0,2);
+                D1 = ShiftLeft(D0,2);
+                //C1 = ShiftLeft(C1,i);
+                //D1 = ShiftLeft(D1,i);
             }
-
             binaryKey=C1+D1;
             //System.out.println(binaryKey);
-            String FinalKey = PC(binaryKey,2);
+            FinalKey = PC(binaryKey,2);
             Keys.add(FinalKey);
             C0=C1;
             D0=D1;
         }
-
         return Keys;
     }
 
