@@ -13,6 +13,7 @@ public class DES {
         ArrayList<String> packages = make_packages(msg);
         ArrayList<String> encrypted_packages = new ArrayList<>();
 
+
         //TESTS (to view the packages themselves)
         for (int i=0;i<packages.size();i++)
         {
