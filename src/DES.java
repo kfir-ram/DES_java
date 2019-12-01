@@ -125,8 +125,22 @@ public class DES {
 
     private String encrypt(String msg){
 
+
+        //TEST to check that IP and IPInvert works
+        msg = ip(msg);
+        System.out.println("msg stage 1: " + msg + "\n\n");
+        msg = ipInverse(msg);
+        System.out.println("msg stage 2: " + msg + "\n\n");
+
+
+        msg = ip(msg);
+
+
         String mL = msg.substring(0, 32);
         String mR = msg.substring(32);
+
+
+
 
 
         //TESTS
