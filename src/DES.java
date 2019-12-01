@@ -46,8 +46,6 @@ public class DES {
         return get_msg;
     }
 
-
-
     //a function that splits the message into packages of 64bit each.
     private ArrayList<String> make_packages(String msg){
 
@@ -87,7 +85,6 @@ public class DES {
         return packages;
     }
 
-
     private String s_boxes(int index, String s){
         int[] sbox1 = { 14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7,
                 0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8, 4, 1, 14,
@@ -122,8 +119,6 @@ public class DES {
                 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8, 2, 1, 14, 7, 4, 10,
                 8, 13, 15, 12, 9, 0, 3, 5, 6, 11 };
 
-
-
         return null;
     }
 
@@ -133,14 +128,10 @@ public class DES {
         String mR = msg.substring(32);
 
 
-
-
         //TESTS
         System.out.println("R= \t" + mL);
         System.out.println("L= \t" + mR);
         System.out.println("");
-
-
 
         return null;
     }
@@ -172,70 +163,89 @@ public class DES {
         return get_msg;
     }
 
-    //initial Permutation.
+    //initial Permutation, input should be binary string
     private String ip(String input){
         int[] ip =
                 {
-                        58, 50, 42, 34, 26, 18, 10 , 2,
-                        60, 52, 44, 36, 28, 20, 12, 4,
-                        62, 54, 46, 38, 30, 22, 14, 6,
-                        64, 56, 48, 40, 32, 24, 16, 8,
-                        57, 49, 41, 33, 25, 17, 9, 1,
-                        59, 51, 43, 35, 27, 19, 11, 3,
-                        61, 53, 45, 37, 29, 21, 13, 5,
-                        63, 55, 47, 39, 31, 23, 15, 7
+                        58, 50, 42, 34, 26, 18, 10 , 2, 60, 52, 44, 36, 28, 20, 12, 4, 62, 54, 46, 38, 30, 22, 14,
+                        6, 64, 56, 48, 40, 32, 24, 16, 8, 57, 49, 41, 33, 25, 17, 9, 1, 59, 51, 43, 35, 27, 19, 11, 3, 61, 53,
+                        45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7
                 };
 
         String msg = "";
 
-        for (int i = 0; i < ip.length; i++)
-            msg += input.substring(ip[i] - 1, ip[i]);
-
+        char [] MsgArray = input.toCharArray();
+        for (int i=0; i<ip.length; i++)
+            msg += MsgArray[ip[i]-1];
         return msg;
     }
 
-    //final Permutation.
+    //final Permutation, input should be binary string
     private String ipInverse(String input){
         int[] ip =
                 {
-                        40, 8, 48, 16, 56, 24, 64, 32,
-                        39, 7, 47, 15, 55, 23, 63, 31,
-                        38, 6, 46, 14, 54, 22, 62, 30,
-                        37, 5, 45, 13, 53, 21, 61, 29,
-                        36, 4, 44, 12, 52, 20, 60, 28,
-                        35, 3, 43 ,11, 51, 19, 59, 27,
-                        34, 2, 42, 10, 50, 18, 58, 26,
-                        33, 1, 41, 9, 49, 17, 57, 25
+                        40, 8, 48, 16, 56, 24, 64, 32, 39, 7, 47, 15, 55, 23, 63, 31, 38, 6, 46, 14, 54, 22, 62, 30, 37, 5, 45, 13, 53, 21, 61, 29,
+                        36, 4, 44, 12, 52, 20, 60, 28, 35, 3, 43 ,11, 51, 19, 59, 27, 34, 2, 42, 10, 50, 18, 58, 26, 33, 1, 41, 9, 49, 17, 57, 25
                 };
 
-
         String msg = "";
+        char [] MsgArray = input.toCharArray();
 
-        for (int i = 0; i < ip.length; i++)
-            msg += input.substring(ip[i] - 1, ip[i]);
+        for (int i=0; i<ip.length; i++)
+            msg += MsgArray[ip[i]-1];
 
         return msg;
     }
 
+    //Expansion E - expand the string from 32 to 48 byts
     private String E(String input){
         int[] e =
                 {
-                        32,  1,  2,  3,  4,  5,
-                        4,  5,  6,  7,  8,  9,
-                        8,  9, 10, 11, 12, 13,
-                        12, 13, 14, 15, 16, 17,
-                        16, 17, 18, 19, 20, 21,
-                        20, 21, 22, 23, 24, 25,
-                        24, 25, 26, 27, 28, 29,
-                        28, 29, 30, 31, 32,  1
+                        32,  1,  2,  3,  4,  5, 4,  5,  6,  7,  8,  9, 8,  9, 10, 11, 12, 13, 12, 13, 14, 15, 16, 17,
+                        16, 17, 18, 19, 20, 21, 20, 21, 22, 23, 24, 25, 24, 25, 26, 27, 28, 29, 28, 29, 30, 31, 32,  1
                 };
 
         String res = "";
-
-        for (int i = 0; i < e.length; i++)
-            res += input.substring(e[i] - 1, e[i]);
+        char [] MsgArray = input.toCharArray();
+        for (int i=0; i<e.length; i++)
+            res += MsgArray[e[i]-1];
 
         return res;
+    }
+
+    //function that perform xor operator on 2 binary strings
+    private String XOR (String msg, String Key)
+    {
+        StringBuffer sb = new StringBuffer();
+
+        for (int i = 0; i < msg.length(); i++)
+            sb.append(msg.charAt(i)^Key.charAt(i));
+
+        return sb.toString();
+    }
+
+
+    // F function inculde 4 stages init: 1.Expansion E, 2.XOR with round key, 3.S boxes, 4.Permutation
+    private String The_F_Function (String MsgRight, String CurrentKey)
+    {
+        //Step 1 - Expansion E
+        String ExpandMsg= E(MsgRight);
+        System.out.println("String after function E:  " + ExpandMsg);
+        //Step 2 - Xor with the key
+        String XorMsg = XOR(ExpandMsg,CurrentKey);
+        System.out.println("String after XOR: " +XorMsg);
+
+        //step 3 - S boxes
+        //cutting the message to packets of 6 byts
+        ArrayList <String> Sbox_Package = new ArrayList<>();
+        while (XorMsg.length() > 64)
+        {
+            Sbox_Package.add(XorMsg.substring(0,64));
+            XorMsg = XorMsg.substring(64);
+        }
+
+
+        return null;
     }
 
 }
