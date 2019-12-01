@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class DES {
 
-    public String Cipher(String msg, String key)
+    public String Cipher(String msg, String key, int type)
     {
 
         // Part 1 - Key generation
@@ -16,51 +16,76 @@ public class DES {
         //System.out.println("Binary key is: " +binaryKey);
         String pcKey = keyProccess.PC(binaryKey,1);
         ArrayList <String> keys_list = keyProccess.split_and_round(pcKey);
-        System.out.println("Keys created are: " + keys_list);
 
         ArrayList<String> packages = make_packages(msg);
         ArrayList<String> encrypted_packages = new ArrayList<>();
+        ArrayList<String> decrypted_packages = new ArrayList<>();
+        System.out.println("the input binary is: " +packages.get(0));
 
 
-        //TESTS (to view the packages themselves)
+        /*TESTS (to view the packages themselves)
         for (int i=0;i<packages.size();i++)
         {
             System.out.println("package "+ i +": "+ packages.get(i));
         }
 
+         */
 
         //sending every single package into encryption
-        for(int i = 0; i < packages.size(); i++)
-        {
-            encrypted_packages.add(encrypt(packages.get(i), keys_list));
+        if (type == 1) {
+            for (int i = 0; i < packages.size(); i++) {
+                encrypted_packages.add(encrypt(packages.get(i), keys_list));
+            }
         }
+        else if(type == 2) {
+            for (int i = 0; i < packages.size() - 1; i++) {
+                decrypted_packages.add(decrypt(packages.get(i), keys_list));
+            }
+        }
+        String cypher_msg = "";
 
         //END PART - grab together all of the packges.
-        String cypher_msg = "";
-        for (int i = 0; i < packages.size(); i++)
-            cypher_msg += packages.get(i);
-        System.out.println("the long binary is: " + cypher_msg);
+        if (type == 1)
+        {
+            for (int i = 0; i < encrypted_packages.size(); i++)
+                cypher_msg += encrypted_packages.get(i);
+        }
+        if (type == 2)
+        {
+            for (int i = 0; i < decrypted_packages.size(); i++)
+                cypher_msg += decrypted_packages.get(i);
+        }
 
         //DELETE the remaining zeros from the binary code.
-        while (cypher_msg.charAt(cypher_msg.length() - 1) == '0')
-            cypher_msg = cypher_msg.substring(0, cypher_msg.length() - 1);
+
+        /*
+        if (type == 2)
+        {
+            while (cypher_msg.charAt(0) == '0'){
+                cypher_msg = cypher_msg.substring(1);
+            }
+        }
+
+         */
+
+        System.out.println("the output binary is: " + cypher_msg);
 
         //Convert the binary to String.
         String get_msg = new String(new BigInteger(cypher_msg, 2).toByteArray()).toString();
-        System.out.println("the back together message is: " + get_msg);
-
         //System.out.println("the encripted msg is: "+msg);
-
 
         return get_msg;
     }
 
 
+
     //a function that splits the message into packages of 64bit each.
     private ArrayList<String> make_packages(String msg){
 
-        //TESTS
+        /*TESTS
         System.out.println("the original msg is: "+msg);
+
+         */
 
         //an array list for all the pieces of the package
         ArrayList<String> packages = new ArrayList<>();
@@ -68,9 +93,11 @@ public class DES {
         //convert the original message to binary code.
         String binary_msg = new BigInteger(msg.getBytes()).toString(2);
 
-        //TESTS
+        /*TESTS
         System.out.println("as binary: "+ binary_msg);
         System.out.println("binary length: "+ binary_msg.length());
+
+         */
 
         //cutting the message into 64 bits each
         while (binary_msg.length() > 64)
@@ -86,7 +113,7 @@ public class DES {
         {
             if (binary_msg.length() < 64) {
                 String adder = new String(new char[64 - binary_msg.length()]).replace('\0', '0');
-                binary_msg = binary_msg.concat(adder);
+                binary_msg = adder.concat(binary_msg);
             }
             packages.add(binary_msg);
         }
@@ -135,11 +162,44 @@ public class DES {
     private String encrypt(String msg, ArrayList<String> keys_list){
 
 
-        //TEST to check that IP and IPInvert works
+        String mL = "";
+        String mR = "";
+        String new_mL = "";
+        String current_key = "";
+
         msg = ip(msg);
-        System.out.println("msg stage 1: " + msg + "\n");
+
+        System.out.println("after IP : " + msg);
+
+
+        for (int i = 0; i<16; i++) {
+            mL = msg.substring(0, 32);
+            mR = msg.substring(32);
+
+            current_key = The_F_Function(mR, keys_list.get(i));
+
+            new_mL = XOR(mL,current_key);
+
+            msg = "" + mR + new_mL;
+            System.out.println("round " + (i+1) + " : " + msg);
+        }
+
+
         msg = ipInverse(msg);
-        System.out.println("msg stage 2: " + msg + "\n");
+
+        /*TESTS
+        System.out.println("R= \t" + mL);
+        System.out.println("L= \t" + mR);
+        System.out.println("***************************************************************8 "+msg);
+
+         */
+        System.out.println("after IPInvert : " + msg);
+
+        return msg;
+    }
+
+
+    private String decrypt(String msg, ArrayList<String> keys_list){
 
         String mL = "";
         String mR = "";
@@ -148,68 +208,38 @@ public class DES {
 
         msg = ip(msg);
 
-        msg = ip(msg);
-
-        System.out.println("msg stage 1: " + msg + "\n\n");
+        System.out.println("D - after IPInvert : " + msg);
 
 
-        for (int i = 0; i<16; i++) {
+
+        for (int i = 15; i>=0; i--) {
             mL = msg.substring(0, 32);
             mR = msg.substring(32);
 
-            //
-            System.out.println("mR \t" + mR);
-            System.out.println("keys_list \t" + keys_list.get(i));
-            //
+
             current_key = The_F_Function(mR, keys_list.get(i));
 
-            //
-            System.out.println("current_key \t" + current_key);
-            //
             new_mL = XOR(mL,current_key);
 
             msg = "" + mR + new_mL;
+
+            System.out.println("D- round " + (16 - i) + " : " + msg);
+
         }
-        System.out.println("msg stage 2: " + msg + "\n\n");
 
 
         msg = ipInverse(msg);
 
-        //TESTS
+        System.out.println("D - after IP : " + msg);
+
+
+        /*TESTS
         System.out.println("R= \t" + mL);
         System.out.println("L= \t" + mR);
-        System.out.println("***************************************************************8 "+msg);
+        System.out.println("invert: "+msg);
 
-        String get_msg = new String(new BigInteger(msg, 2).toByteArray());
-        System.out.println("as text:\n "+get_msg);
+         */
         return msg;
-    }
-
-
-    private String decrypt(String msg, String key){
-
-        ArrayList<String> packages = new ArrayList<>();
-
-
-
-
-        //END PART - grab together all of the packges.
-        String cypher_msg = "";
-        for (int i = 0; i < packages.size(); i++)
-            cypher_msg += packages.get(i);
-        System.out.println("the long binary is: " + cypher_msg);
-
-        //DELETE the remaining zeros from the binary code.
-        while (cypher_msg.charAt(cypher_msg.length() - 1) == '0')
-            cypher_msg = cypher_msg.substring(0, cypher_msg.length() - 1);
-
-        //Convert the binary to String.
-        String get_msg = new String(new BigInteger(cypher_msg, 2).toByteArray()).toString();
-        System.out.println("the back together message is: " + get_msg);
-
-        //System.out.println("the encripted msg is: "+msg);
-
-        return get_msg;
     }
 
     //initial Permutation, input should be binary string
@@ -279,10 +309,8 @@ public class DES {
     {
         //Step 1 - Expansion E
         String ExpandMsg= E(MsgRight);
-        System.out.println("String after function E:  " + ExpandMsg);
         //Step 2 - Xor with the key
         String XorMsg = XOR(ExpandMsg,CurrentKey);
-        System.out.println("String after XOR: " +XorMsg);
 
         //step 3 - S boxes
         //cutting the message to packets of 6 byts

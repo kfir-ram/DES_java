@@ -7,12 +7,16 @@ public class Main {
     public static void main(String[] args)
     {
 
+        //Type 1 = Encrypt, Type 2 = Decrypt.
         String msg = "thoughts";
         String key = "nonsense";
         DES des = new DES();
-        String encripte_msg = des.Cipher(msg, key);
+        String encrypte_msg = des.Cipher(msg, key, 1);
+        System.out.println("*** START:! " + encrypte_msg);
 
-        System.out.println(encripte_msg);
+        String decrypt_msg = des.Cipher(encrypte_msg, key, 2);
+
+        System.out.println("*** FINAL:! " + decrypt_msg);
 
     }
 }
