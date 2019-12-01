@@ -10,6 +10,14 @@ public class DES {
     public String Cipher(String msg, String key)
     {
 
+        // Part 1 - Key generation
+        KeyGeneration keyProccess = new KeyGeneration();
+        String binaryKey =  keyProccess.ConvertBinary(key);
+        //System.out.println("Binary key is: " +binaryKey);
+        String pcKey = keyProccess.PC(binaryKey,1);
+        ArrayList <String> keys_list = keyProccess.split_and_round(pcKey);
+        System.out.println("Keys created are: " + keys_list);
+
         ArrayList<String> packages = make_packages(msg);
         ArrayList<String> encrypted_packages = new ArrayList<>();
 
@@ -23,7 +31,7 @@ public class DES {
         //sending every single package into encryption
         for(int i = 0; i < packages.size(); i++)
         {
-            encrypted_packages.add(encrypt(packages.get(i)));
+            encrypted_packages.add(encrypt(packages.get(i), keys_list));
         }
 
         //END PART - grab together all of the packges.
@@ -45,6 +53,7 @@ public class DES {
 
         return get_msg;
     }
+
 
     //a function that splits the message into packages of 64bit each.
     private ArrayList<String> make_packages(String msg){
@@ -122,21 +131,26 @@ public class DES {
         return null;
     }
 
-    private String encrypt(String msg){
+    private String encrypt(String msg, ArrayList<String> keys_list){
 
 
         //TEST to check that IP and IPInvert works
         msg = ip(msg);
-        System.out.println("msg stage 1: " + msg + "\n\n");
+        System.out.println("msg stage 1: " + msg + "\n");
         msg = ipInverse(msg);
-        System.out.println("msg stage 2: " + msg + "\n\n");
+        System.out.println("msg stage 2: " + msg + "\n");
 
+        String mL = "";
+        String mR = "";
 
         msg = ip(msg);
 
+        for (int i = 0; i < 16; i++){
 
-        String mL = msg.substring(0, 32);
-        String mR = msg.substring(32);
+        }
+
+
+
 
 
 
@@ -147,7 +161,7 @@ public class DES {
         System.out.println("L= \t" + mR);
         System.out.println("");
 
-        return null;
+        return msg;
     }
 
 
