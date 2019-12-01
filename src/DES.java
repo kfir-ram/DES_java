@@ -143,25 +143,45 @@ public class DES {
 
         String mL = "";
         String mR = "";
+        String new_mL = "";
+        String current_key = "";
 
         msg = ip(msg);
 
-        for (int i = 0; i < 16; i++){
+        msg = ip(msg);
 
+        System.out.println("msg stage 1: " + msg + "\n\n");
+
+
+        for (int i = 0; i<16; i++) {
+            mL = msg.substring(0, 32);
+            mR = msg.substring(32);
+
+            //
+            System.out.println("mR \t" + mR);
+            System.out.println("keys_list \t" + keys_list.get(i));
+            //
+            current_key = The_F_Function(mR, keys_list.get(i));
+
+            //
+            System.out.println("current_key \t" + current_key);
+            //
+            new_mL = XOR(mL,current_key);
+
+            msg = "" + mR + new_mL;
         }
+        System.out.println("msg stage 2: " + msg + "\n\n");
 
 
-
-
-
-
-
+        msg = ipInverse(msg);
 
         //TESTS
         System.out.println("R= \t" + mL);
         System.out.println("L= \t" + mR);
-        System.out.println("");
+        System.out.println("***************************************************************8 "+msg);
 
+        String get_msg = new String(new BigInteger(msg, 2).toByteArray());
+        System.out.println("as text:\n "+get_msg);
         return msg;
     }
 
@@ -274,7 +294,7 @@ public class DES {
         }
 
 
-        return null;
+        return XorMsg;
     }
 
 }
