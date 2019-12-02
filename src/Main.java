@@ -1,24 +1,21 @@
-import java.math.BigInteger;
-import java.util.ArrayList;
-
+import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
 
-        //Type 1 = Encrypt, Type 2 = Decrypt.
-        String msg = "thoughts";
-        String key = "nonsense";
+        Scanner userInput = new Scanner(System.in);
+        System.out.println("~~~~~~~~~~~~~~~~~~~ Let's encrypt using DES! ~~~~~~~~~~~~~~~~~~~\nPlease enter the Key:");
+        String key = userInput.nextLine();
+        System.out.println("Please enter the Words:");
+        String msg = userInput.nextLine();
         DES des = new DES();
-        String encrypte_msg = des.Cipher(msg, key, 1);
-        System.out.println("*** START:! " + encrypte_msg);
 
-        String decrypt_msg = des.Cipher(encrypte_msg, key, 2);
+        String encrypted_msg = des.Cipher(msg, key, 1);
 
-        System.out.println("*** FINAL:! " + decrypt_msg);
-
+        des.Cipher(encrypted_msg, key, 2);
     }
 }
+
 
 

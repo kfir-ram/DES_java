@@ -1,103 +1,76 @@
-//that's how you return it to a string from binary.
-//String get_msg = new String(new BigInteger(binary_msg, 2).toByteArray());
-//System.out.println("as text: "+get_msg);
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 
-public class DES {
+class DES {
 
-    public String Cipher(String msg, String key, int type)
-    {
-
+    String Cipher(String msg, String key, int type) {
         // Part 1 - Key generation
-        KeyGeneration keyProccess = new KeyGeneration();
-        String binaryKey =  keyProccess.ConvertBinary(key);
-        //System.out.println("Binary key is: " +binaryKey);
-        String pcKey = keyProccess.PC(binaryKey,1);
-        ArrayList <String> keys_list = keyProccess.split_and_round(pcKey);
+        KeyGeneration keyProcess = new KeyGeneration();
+        String binaryKey =  keyProcess.ConvertBinary(key);
+        String pcKey = keyProcess.PC(binaryKey,1);
+        ArrayList keys_list = keyProcess.split_and_round(pcKey);
 
-        ArrayList<String> packages = make_packages(msg);
+        ArrayList<String> packages;
+        if (type == 1)
+            packages = make_packages(msg, 1);
+        else
+            packages = make_packages(msg, 0);
+
         ArrayList<String> encrypted_packages = new ArrayList<>();
         ArrayList<String> decrypted_packages = new ArrayList<>();
-        System.out.println("the input binary is: " +packages.get(0));
-
-
-        /*TESTS (to view the packages themselves)
-        for (int i=0;i<packages.size();i++)
-        {
-            System.out.println("package "+ i +": "+ packages.get(i));
-        }
-
-         */
 
         //sending every single package into encryption
         if (type == 1) {
-            for (int i = 0; i < packages.size(); i++) {
-                encrypted_packages.add(encrypt(packages.get(i), keys_list));
-            }
+            for (String aPackage : packages)
+                encrypted_packages.add(encrypt(aPackage, keys_list));
         }
-        else if(type == 2) {
-            for (int i = 0; i < packages.size() - 1; i++) {
-                decrypted_packages.add(decrypt(packages.get(i), keys_list));
-            }
+        else {
+            for (String aPackage : packages)
+                decrypted_packages.add(decrypt(aPackage, keys_list));
         }
-        String cypher_msg = "";
+        StringBuilder cipher_msg = new StringBuilder();
 
-        //END PART - grab together all of the packges.
+        //END PART - grab together all of the packages.
         if (type == 1)
         {
-            for (int i = 0; i < encrypted_packages.size(); i++)
-                cypher_msg += encrypted_packages.get(i);
+            for (String encrypted_package : encrypted_packages)
+                cipher_msg.append(encrypted_package);
         }
         if (type == 2)
         {
-            for (int i = 0; i < decrypted_packages.size(); i++)
-                cypher_msg += decrypted_packages.get(i);
+            for (int i = 0; i < decrypted_packages.size() - 1; i++)
+                cipher_msg.append(decrypted_packages.get(i));
+
+            StringBuilder last_part = new StringBuilder(decrypted_packages.get(decrypted_packages.size() - 1));
+            while (last_part.charAt(0) == '0')
+                last_part = new StringBuilder(last_part.substring(1));
+            while (last_part.length() % 8 != 0)
+                last_part.insert(0, "0");
+            cipher_msg.append(last_part);
         }
-
-        //DELETE the remaining zeros from the binary code.
-
-        /*
-        if (type == 2)
-        {
-            while (cypher_msg.charAt(0) == '0'){
-                cypher_msg = cypher_msg.substring(1);
-            }
-        }
-
-         */
-
-        System.out.println("the output binary is: " + cypher_msg);
 
         //Convert the binary to String.
-        String get_msg = new String(new BigInteger(cypher_msg, 2).toByteArray()).toString();
-        //System.out.println("the encripted msg is: "+msg);
-
-        return get_msg;
+        String get_msg = new String(new BigInteger(cipher_msg.toString(), 2).toByteArray());
+        if (type == 1) {
+            System.out.println("the encrypted msg is: "+ get_msg);
+        }
+        else {
+            System.out.println("the decrypted msg is: "+ get_msg);
+        }
+        return cipher_msg.toString();
     }
 
-
-
-    //a function that splits the message into packages of 64bit each.
-    private ArrayList<String> make_packages(String msg){
-
-        /*TESTS
-        System.out.println("the original msg is: "+msg);
-
-         */
-
-        //an array list for all the pieces of the package
+    //a function that splits the message into packages of 64bit each. (type 0 = binary code, type 1 = english sentence)
+    private ArrayList<String> make_packages(String msg, int type){
         ArrayList<String> packages = new ArrayList<>();
-
+        String binary_msg = "";
         //convert the original message to binary code.
-        String binary_msg = new BigInteger(msg.getBytes()).toString(2);
-
-        /*TESTS
-        System.out.println("as binary: "+ binary_msg);
-        System.out.println("binary length: "+ binary_msg.length());
-
-         */
+        if (type == 1){
+            binary_msg = new BigInteger(msg.getBytes()).toString(2);
+            binary_msg = "0" + binary_msg;
+        }
+        else
+        binary_msg += msg;
 
         //cutting the message into 64 bits each
         while (binary_msg.length() > 64)
@@ -105,20 +78,14 @@ public class DES {
             packages.add(binary_msg.substring(0,64));
             binary_msg = binary_msg.substring(64);
         }
-
-
         //for the last package (if it exist), I am filling it with many zeros at the end.
         // in order to make it also 64 bit.
         if (binary_msg.length() > 0)
         {
-            if (binary_msg.length() < 64) {
-                String adder = new String(new char[64 - binary_msg.length()]).replace('\0', '0');
-                binary_msg = adder.concat(binary_msg);
-            }
+            String adder = new String(new char[64 - binary_msg.length()]).replace('\0', '0');
+            binary_msg = adder.concat(binary_msg);
             packages.add(binary_msg);
         }
-
-
         return packages;
     }
 
@@ -190,83 +157,44 @@ public class DES {
     }
 
     private String encrypt(String msg, ArrayList<String> keys_list){
-
-
-        String mL = "";
-        String mR = "";
-        String new_mL = "";
-        String current_key = "";
+        String mL, mR, new_mL, f_box;
 
         msg = ip(msg);
-
-        System.out.println("after IP : " + msg);
-
 
         for (int i = 0; i < 16; i++) {
             mL = msg.substring(0, 32);
             mR = msg.substring(32);
 
-            current_key = The_F_Function(mR, keys_list.get(i));
+            f_box = The_F_Function(mR, keys_list.get(i));
 
-            new_mL = XOR(mL,current_key);
+            new_mL = XOR(mL, f_box);
 
-            msg = "" + mR + new_mL;
-            //System.out.println("round " + (i+1) + " : " + msg);
+            if (i != 15)
+                msg = "" + mR + new_mL;
+            else
+                msg = "" + new_mL + mR;
         }
-
-
         msg = ipInverse(msg);
-
-        /*TESTS
-        System.out.println("R= \t" + mL);
-        System.out.println("L= \t" + mR);
-        System.out.println("***************************************************************8 "+msg);
-
-         */
-        System.out.println("after IPInvert : " + msg);
-
         return msg;
     }
 
-
     private String decrypt(String msg, ArrayList<String> keys_list){
-
-        String mL = "";
-        String mR = "";
-        String new_mL = "";
-        String current_key = "";
-
+        String mL, mR, new_mL, f_box;
         msg = ip(msg);
 
-        System.out.println("D - after IPInvert : " + msg);
-
-
-
-        for (int i = 15; i>=0; i--) {
+        for (int i = 15; i >= 0; i--) {
             mL = msg.substring(0, 32);
             mR = msg.substring(32);
 
+            f_box = The_F_Function(mR, keys_list.get(i));
+            new_mL = XOR(mL, f_box);
 
-            current_key = The_F_Function(mR, keys_list.get(i));
-
-            new_mL = XOR(mL,current_key);
-
-            msg = "" + mR + new_mL;
-
+            if (i != 0)
+                msg = "" + mR + new_mL;
+            else
+                msg = "" + new_mL + mR;
         }
-
-
         msg = ipInverse(msg);
-
-        System.out.println("D - after IP : " + msg);
-
-
-        /*TESTS
-        System.out.println("R= \t" + mL);
-        System.out.println("L= \t" + mR);
-        System.out.println("invert: "+msg);
-
-         */
         return msg;
     }
 
@@ -279,12 +207,12 @@ public class DES {
                         45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7
                 };
 
-        String msg = "";
+        StringBuilder msg = new StringBuilder();
 
         char [] MsgArray = input.toCharArray();
         for (int i=0; i<ip.length; i++)
-            msg += MsgArray[ip[i]-1];
-        return msg;
+            msg.append(MsgArray[ip[i] - 1]);
+        return msg.toString();
     }
 
     //final Permutation, input should be binary string
@@ -295,16 +223,16 @@ public class DES {
                         36, 4, 44, 12, 52, 20, 60, 28, 35, 3, 43 ,11, 51, 19, 59, 27, 34, 2, 42, 10, 50, 18, 58, 26, 33, 1, 41, 9, 49, 17, 57, 25
                 };
 
-        String msg = "";
+        StringBuilder msg = new StringBuilder();
         char [] MsgArray = input.toCharArray();
 
         for (int i=0; i<ip.length; i++)
-            msg += MsgArray[ip[i]-1];
+            msg.append(MsgArray[ip[i] - 1]);
 
-        return msg;
+        return msg.toString();
     }
 
-    //Expansion E - expand the string from 32 to 48 byts
+    //Expansion E - expand the string from 32 to 48 bits
     private String E(String input){
         int[] e =
                 {
@@ -312,27 +240,45 @@ public class DES {
                         16, 17, 18, 19, 20, 21, 20, 21, 22, 23, 24, 25, 24, 25, 26, 27, 28, 29, 28, 29, 30, 31, 32,  1
                 };
 
-        String res = "";
+        StringBuilder res = new StringBuilder();
         char [] MsgArray = input.toCharArray();
-        for (int i=0; i < e.length; i++)
-            res += MsgArray[e[i]-1];
 
-        return res;
+        for (int i=0; i < e.length; i++)
+            res.append(MsgArray[e[i] - 1]);
+
+        return res.toString();
+    }
+
+    //Permutation after the S_boxes
+    private String P(String input){
+        int[] p =
+                {
+                        16,7,20,21,29,12,28,17,
+                        1,15,23,26,5,18,31,10,
+                        2,8,24,14,32,27,3,9,
+                        19,13,30,6,22,11,4,25
+                };
+        StringBuilder res = new StringBuilder();
+        char [] MsgArray = input.toCharArray();
+
+        for (int i=0; i < p.length; i++)
+            res.append(MsgArray[p[i] - 1]);
+
+
+        return res.toString();
+
     }
 
     //function that perform xor operator on 2 binary strings
-    private String XOR (String msg, String Key)
-    {
-        StringBuffer sb = new StringBuffer();
+    private String XOR (String msg, String Key) {
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < msg.length(); i++)
             sb.append(msg.charAt(i)^Key.charAt(i));
         return sb.toString();
     }
 
-
     // F function inculde 4 stages init: 1.Expansion E, 2.XOR with round key, 3.S boxes, 4.Permutation
-    private String The_F_Function (String MsgRight, String CurrentKey)
-    {
+    private String The_F_Function (String MsgRight, String CurrentKey) {
         //Step 1 - Expansion E
         String ExpandMsg= E(MsgRight);
         //Step 2 - Xor with the key
@@ -354,7 +300,8 @@ public class DES {
             coulmn = "" + pre_Sbox.get(i).substring(1,5);
             int iRow = Integer.parseInt(row, 2);
             int iColumn = Integer.parseInt(coulmn, 2);
-            post_Sbox.add(s_boxes(i+1, iRow, iColumn));
+            String output = ""+s_boxes(i+1, iRow, iColumn);
+            post_Sbox.add(output);
         }
 
         for(int i = 0; i < 8; i++){
@@ -363,13 +310,17 @@ public class DES {
                 i --;
             }
         }
-
-        String sbox_out = "";
+        StringBuilder sbox_out = new StringBuilder();
         for (int i = 0; i < 8; i++){
-            sbox_out += post_Sbox.get(i);
+            sbox_out.append(post_Sbox.get(i));
         }
+        sbox_out = new StringBuilder(P(sbox_out.toString()));
 
-        return sbox_out;
+        return sbox_out.toString();
     }
 
+
+
+
 }
+
